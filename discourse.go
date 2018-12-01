@@ -7,8 +7,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/labstack/echo"
 )
@@ -30,6 +32,54 @@ type User struct {
 type Sso struct {
 	Sso string `json:"sso"`
 	Sig string `json:"sig"`
+}
+
+func rndInit() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func rndStr(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+type urlPath struct {
+	Url string `json:"url"`
+}
+
+func ssoProvider(c echo.Context) (err error) {
+	u := new(urlPath)
+	if err = c.Bind(u); err != nil {
+		return
+	}
+	rndInit()
+	nonce := rndStr(32)
+	// url := c.Request().(*standard.URL).URL
+
+	v := make(url.Values)
+	v.Set("nonce", nonce)
+	v.Set("return_sso_url", u.Url)
+	fmt.Println(nonce, u.Url)
+	p := base64.StdEncoding.EncodeToString([]byte(v.Encode()))
+	h := hmac.New(sha256.New, []byte(Secert))
+	h.Write([]byte(p))
+
+	sig := hex.EncodeToString(h.Sum(nil))
+	v = make(url.Values)
+	v.Set("sso", p)
+	v.Set("sig", sig)
+	fmt.Println(string(v.Encode()))
+
+	path := fmt.Sprintf("%s/session/sso_provider?%s", Host, v.Encode())
+	// fmt.Println(url)
+	return c.Redirect(http.StatusMovedPermanently, path)
+
+	// return c.NoContent(http.StatusOK)
 }
 
 func ssoRedirect(nonce string, user User) (url.Values, error) {

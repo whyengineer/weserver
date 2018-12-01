@@ -15,7 +15,7 @@ var dsClient *Client
 func adminRouter() {
 	dsClient, _ = NewClient(Host, "f05fb8eaabe0e163fe5a609ef08c5dd9d9784d629c1f8dcf47f0e3cfcc7810c3", "frankie")
 
-	admin.POST("/login", login)
+	admin.GET("/login", ssoProvider)
 	admin.POST("/signup", signup)
 	admin.GET("/session", getSession)
 	admin.GET("/logout", logout)
@@ -75,6 +75,7 @@ func getSession(c echo.Context) (err error) {
 	ret.Data = s
 	return c.JSON(http.StatusOK, ret)
 }
+
 func login(c echo.Context) (err error) {
 	l := new(loginHandle)
 	ret := new(Status)
