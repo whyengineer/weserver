@@ -1,10 +1,13 @@
 package weserver
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo-contrib/session"
 )
 
 type Status struct {
@@ -98,6 +101,11 @@ type AddDb struct {
 func updateHwDb(c echo.Context) (err error) {
 	update := new(AddDb)
 	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
 	if err = c.Bind(update); err != nil {
 		return
 	}
@@ -162,6 +170,11 @@ func updateHwDb(c echo.Context) (err error) {
 func addHwDb(c echo.Context) (err error) {
 	add := new(AddDb)
 	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
 	if err = c.Bind(add); err != nil {
 		return
 	}
@@ -263,6 +276,11 @@ func queryHwDb1(c echo.Context) (err error) {
 func queryHwDb(c echo.Context) (err error) {
 	q := new(QueryDb)
 	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
 	if err = c.Bind(q); err != nil {
 		return
 	}
@@ -309,14 +327,42 @@ func queryHwDb(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, ret)
 
 }
+func accessCheck(c echo.Context) (bool, string) {
+	sess, _ := session.Get("session", c)
+	if sess.Values["username"] == nil || sess.Values["email"] == nil || sess.Values["id"] == nil {
+		return false, "Please login"
+	}
 
+	fmt.Println(sess.Values["username"])
+	fmt.Println(sess.Values["email"])
+	fmt.Println(sess.Values["id"])
+	id := sess.Values["id"].(string)
+	ids, _ := strconv.Atoi(id)
+	var result []Weuser
+	db.Where("id = ?", ids).Find(&result)
+	if len(result) == 0 {
+		return false, "The user does not exist"
+	}
+	if result[0].Level <= 3 {
+		return true, "Successful"
+	} else {
+		return false, "The user does not have right to access"
+	}
+}
 func deleteHwDb(c echo.Context) (err error) {
-	d := new(DeleteDb)
 	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
+	d := new(DeleteDb)
+
 	ret.Data = nil
 	if err = c.Bind(d); err != nil {
 		return
 	}
+
 	switch d.TableName {
 	case "IC":
 		db.Where("pn = ?", d.Pn).Delete(IC{})
@@ -331,7 +377,7 @@ func deleteHwDb(c echo.Context) (err error) {
 	case "Switch/Connector":
 		db.Where("pn = ?", d.Pn).Delete(SwitchConnector{})
 	case "Transistor/Diode":
-		db.Where("pn = ?", d.Pn).Find(TransistorDiode{})
+		db.Where("pn = ?", d.Pn).Delete(TransistorDiode{})
 	default:
 		ret.Error = -1
 		ret.Msg = "not found the table"

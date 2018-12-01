@@ -131,6 +131,14 @@ type Other struct {
 	Vendor2PN   string `json:"vendor2pn"`
 }
 
+type Weuser struct {
+	gorm.Model
+	Username string `gorm:"unique;index;not null" json:"username"`
+	Email    string `gorm:"unique;index;not null" json:"email"`
+	Password string `gorm:"not null" json:"password"`
+	Level    int    `gorm:"not null" json:"level"`
+}
+
 //DbConnect connect to the db server and return the object
 func DbConnect() *gorm.DB {
 	db, err := gorm.Open("mysql", "frankie:71451085a@tcp(www.whyengineer.com:3306)/hwdb?charset=utf8&parseTime=True")
@@ -147,5 +155,6 @@ func DbConnect() *gorm.DB {
 	db.AutoMigrate(&Other{})
 	db.AutoMigrate(&Symbol{})
 	db.AutoMigrate(&Footprint{})
+	db.AutoMigrate(&Weuser{})
 	return db
 }
