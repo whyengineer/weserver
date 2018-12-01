@@ -11,11 +11,10 @@ import (
 	"net/url"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/echo-contrib/session"
 )
 
 const (
-	Domain = "http://localhost:1323"
+	Domain = "http://localhost:8080"
 	Host   = "https://forum.whyengineer.com"
 	Secert = "frankielovelll"
 )
@@ -55,6 +54,7 @@ func ssoRedirect(nonce string, user User) (url.Values, error) {
 	v.Set("sig", sig)
 	return v, nil
 }
+
 func ssoLogin(c echo.Context) (err error) {
 	s := new(Sso)
 	if err = c.Bind(s); err != nil {
@@ -80,34 +80,36 @@ func ssoLogin(c echo.Context) (err error) {
 		return err
 	}
 	nonce := v.Get("nonce")
-
-	sess, _ := session.Get("session", c)
-	// if sess.Values["username"] == nil || sess.Values["email"] == nil || sess.Values["id"] == nil {
-	// 	ret.Error = -1
-	// 	ret.Msg = "The user does not exist"
-	// 	return c.JSON(http.StatusOK, ret)
-	// }
+	endpoint := fmt.Sprintf("/#/login/%s", nonce)
+	return c.Redirect(http.StatusMovedPermanently, endpoint)
 
 	// sess, _ := session.Get("session", c)
-	// if sess.Values["username"] == nil || sess.Values["email"] == nil {
-	// 	return c.Redirect(http.StatusMovedPermanently, "/#/login")
+	// // if sess.Values["username"] == nil || sess.Values["email"] == nil || sess.Values["id"] == nil {
+	// // 	ret.Error = -1
+	// // 	ret.Msg = "The user does not exist"
+	// // 	return c.JSON(http.StatusOK, ret)
+	// // }
+
+	// // sess, _ := session.Get("session", c)
+	// // if sess.Values["username"] == nil || sess.Values["email"] == nil {
+	// // 	return c.Redirect(http.StatusMovedPermanently, "/#/login")
+	// // }
+	// fmt.Println(sess.Values["username"])
+	// fmt.Println(sess.Values["email"])
+	// fmt.Println(sess.Values["id"])
+
+	// // username := sess.Values["username"].(string)
+	// // email := sess.Values["email"].(string)
+	// // id := sess.Values["id"].(string)
+
+	// user := User{
+	// 	Email:      "frankie@whyengineer.com",
+	// 	ExternalId: "2",
+	// 	Username:   "frankie",
 	// }
-	fmt.Println(sess.Values["username"])
-	fmt.Println(sess.Values["email"])
-	fmt.Println(sess.Values["id"])
-
-	// username := sess.Values["username"].(string)
-	// email := sess.Values["email"].(string)
-	// id := sess.Values["id"].(string)
-
-	user := User{
-		Email:      "frankie@whyengineer.com",
-		ExternalId: "2",
-		Username:   "frankie",
-	}
-	fmt.Println(user)
-	param, _ := ssoRedirect(nonce, user)
-	url := fmt.Sprintf("%s/session/sso_login?%s", Host, param.Encode())
-	fmt.Println(url)
-	return c.Redirect(http.StatusMovedPermanently, url)
+	// fmt.Println(user)
+	// param, _ := ssoRedirect(nonce, user)
+	// url := fmt.Sprintf("%s/session/sso_login?%s", Host, param.Encode())
+	// fmt.Println(url)
+	// return c.Redirect(http.StatusMovedPermanently, url)
 }

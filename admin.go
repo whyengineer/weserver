@@ -25,6 +25,7 @@ func adminRouter() {
 type loginHandle struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
+	Nonce    string `json:"nonce"`
 }
 
 func cryptoPassword(password string) (string, error) {
@@ -97,7 +98,18 @@ func login(c echo.Context) (err error) {
 		sess.Values["id"] = strconv.Itoa(int(result[0].ID))
 
 		sess.Save(c.Request(), c.Response())
+		if l.Nonce != "" {
+			user := User{
+				Email:      l.Email,
+				ExternalId: strconv.Itoa(int(result[0].ID)),
+				Username:   result[0].Username,
+			}
+			param, _ := ssoRedirect(l.Nonce, user)
 
+			url := fmt.Sprintf("%s/session/sso_login?%s", Host, param.Encode())
+			fmt.Println(url)
+			return c.Redirect(http.StatusMovedPermanently, url)
+		}
 	} else {
 		ret.Error = -2
 		ret.Msg = "Password not correct"
@@ -110,6 +122,7 @@ type sigupHandle struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
 	Username string `json:"username"`
+	Nonce    string `json:"nonce"`
 }
 
 func signup(c echo.Context) (err error) {
