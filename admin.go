@@ -1,6 +1,7 @@
 package weserver
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -16,6 +17,7 @@ func adminRouter() {
 	dsClient, _ = NewClient(Host, "f05fb8eaabe0e163fe5a609ef08c5dd9d9784d629c1f8dcf47f0e3cfcc7810c3", "frankie")
 
 	admin.GET("/login", ssoProvider)
+	admin.GET("/pass", ssoLogin)
 	admin.POST("/signup", signup)
 	admin.GET("/session", getSession)
 	admin.GET("/logout", logout)
@@ -49,28 +51,88 @@ type SessionInfo struct {
 }
 
 func logout(c echo.Context) (err error) {
+
+	ret := new(Status)
 	sess, _ := session.Get("session", c)
+	var id string
+	var ok bool
+	if id, ok = sess.Values["external_id"].(string); !ok {
+		ret.Error = -1
+		ret.Msg = "external_id no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
 	sess.Options.MaxAge = -1
 	sess.Save(c.Request(), c.Response())
 
-	endpoint := fmt.Sprintf("/admin/users/%s/log_out.json", sess.Values["id"].(string))
+	endpoint := fmt.Sprintf("/admin/users/%s/log_out.json", id)
 	body, _, _ := dsClient.Post(endpoint, []byte(""))
-	fmt.Println(string(body))
-	return c.NoContent(http.StatusOK)
+	type Response struct {
+		Success string `json:"success"`
+	}
+	var response Response
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		ret.Error = -1
+		ret.Data = "json format error"
+		return c.JSON(http.StatusOK, ret)
+	}
+	ret.Msg = response.Success
+	if response.Success == "OK" {
+		ret.Error = 0
+
+	} else {
+		ret.Error = -1
+	}
+	return c.JSON(http.StatusOK, ret)
 }
 
 func getSession(c echo.Context) (err error) {
-	s := new(SessionInfo)
+	s := new(disUser)
 	ret := new(Status)
 	sess, _ := session.Get("session", c)
-	if sess.Values["username"] == nil || sess.Values["email"] == nil || sess.Values["id"] == nil {
-		ret.Error = -1
-		ret.Msg = "The user does not exist"
+	var ok bool
+	ret.Error = -1
+	if s.Admin, ok = sess.Values["admin"].(string); !ok {
+		ret.Msg = "admin no exist"
 		return c.JSON(http.StatusOK, ret)
 	}
-	s.Username = sess.Values["username"].(string)
-	s.Email = sess.Values["email"].(string)
-	s.Id = sess.Values["id"].(string)
+	if s.AvatarURL, ok = sess.Values["avatar_url"].(string); !ok {
+		ret.Msg = "avatar_url no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+	if s.Email, ok = sess.Values["email"].(string); !ok {
+		ret.Msg = "email no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+	if s.Groups, ok = sess.Values["groups"].(string); !ok {
+		ret.Msg = "groups no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+	if s.ID, ok = sess.Values["external_id"].(string); !ok {
+		ret.Msg = "external_id no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+
+	if s.Moderator, ok = sess.Values["moderator"].(string); !ok {
+		ret.Msg = "moderator no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+
+	if s.Nonce, ok = sess.Values["nonce"].(string); !ok {
+		ret.Msg = "nonce no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+
+	if s.ReturnSsoURL, ok = sess.Values["return_sso_url"].(string); !ok {
+		ret.Msg = "return_sso_url no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+
+	if s.Username, ok = sess.Values["username"].(string); !ok {
+		ret.Msg = "username no exist"
+		return c.JSON(http.StatusOK, ret)
+	}
+
 	ret.Error = 0
 	ret.Data = s
 	return c.JSON(http.StatusOK, ret)

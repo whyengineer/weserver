@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strconv"
+	"strings"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+)
+
+const (
+	OrcadPrefix = "D:\\whyengineer\\WE_HW\\WE_ORCAD\\"
 )
 
 type Status struct {
@@ -34,16 +38,133 @@ func hwdbRouter() {
 	hwdb.GET("/queryHw1", queryHwDb1)
 	hwdb.POST("/addHw", addHwDb)
 	hwdb.POST("/updateHw", updateHwDb)
+
 	hwdb.GET("/queryFp", queryFp)
+	hwdb.POST("/addFp", addFp)
+	hwdb.GET("/listFp", listFp)
+	hwdb.GET("/deleteFp", deleteFp)
+	hwdb.GET("/findFp", findFp)
+
+	hwdb.POST("/addSymbol", addSymbol)
 	hwdb.GET("/querySymbol", querySymbol)
+	hwdb.GET("/listSymbol", listSymbol)
+	hwdb.GET("/deleteSymbol", deleteSymbol)
+	hwdb.GET("/findSymbol", findSymbol)
+
 	hwdb.GET("/getUpToken", upToken)
 
 }
 
 type symbolHandle struct {
 	Symbol string `json:"symbol"`
+	Url    string `json:"url"`
+	Offset int    `json:"offset" form:"offset" query:"offset"`
+	Num    int    `json:"num" form:"num" query:"num"`
 }
 
+func listFp(c echo.Context) (err error) {
+	fp := new(fpHandle)
+	ret := new(Status)
+	if err = c.Bind(fp); err != nil {
+		return
+	}
+	var tmp []Footprint
+	db.Order("id desc").Limit(fp.Num).Offset(fp.Offset).Find(&tmp)
+
+	ret.Error = 0
+	ret.Msg = "successful"
+	ret.Data = tmp
+	return c.JSON(http.StatusOK, ret)
+}
+
+func listSymbol(c echo.Context) (err error) {
+	symbol := new(symbolHandle)
+	ret := new(Status)
+	if err = c.Bind(symbol); err != nil {
+		return
+	}
+	var tmp []Symbol
+	db.Order("id desc").Limit(symbol.Num).Offset(symbol.Offset).Find(&tmp)
+
+	ret.Error = 0
+	ret.Msg = "successful"
+	ret.Data = tmp
+	return c.JSON(http.StatusOK, ret)
+}
+func addFp(c echo.Context) (err error) {
+	fp := new(fpHandle)
+	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
+	if err = c.Bind(fp); err != nil {
+		return
+	}
+	s := new(Footprint)
+	s.Footprint = fp.Footprint
+	s.Url = fp.Url
+
+	ret.Error = 0
+	if dbErr := db.Create(s).Error; dbErr != nil {
+		ret.Error = -1
+		ret.Msg = dbErr.Error()
+	}
+	return c.JSON(http.StatusOK, ret)
+
+}
+func addSymbol(c echo.Context) (err error) {
+	symbol := new(symbolHandle)
+	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
+	if err = c.Bind(symbol); err != nil {
+		return
+	}
+	s := new(Symbol)
+	s.Symbol = symbol.Symbol
+	s.Url = symbol.Url
+
+	ret.Error = 0
+	if dbErr := db.Create(s).Error; dbErr != nil {
+		ret.Error = -1
+		ret.Msg = dbErr.Error()
+	}
+	return c.JSON(http.StatusOK, ret)
+
+}
+func findFp(c echo.Context) (err error) {
+	fp := new(fpHandle)
+	ret := new(Status)
+	if err = c.Bind(fp); err != nil {
+		return
+	}
+	var result []Footprint
+	db.Where("footprint = ?", fp.Footprint).Find(&result)
+	ret.Data = result
+	ret.Error = 0
+	ret.Msg = "successful"
+
+	return c.JSON(http.StatusOK, ret)
+}
+func findSymbol(c echo.Context) (err error) {
+	symbol := new(symbolHandle)
+	ret := new(Status)
+	if err = c.Bind(symbol); err != nil {
+		return
+	}
+	var result []Symbol
+	db.Where("symbol = ?", symbol.Symbol).Find(&result)
+	ret.Data = result
+	ret.Error = 0
+	ret.Msg = "successful"
+
+	return c.JSON(http.StatusOK, ret)
+}
 func querySymbol(c echo.Context) (err error) {
 	symbol := new(symbolHandle)
 	ret := new(Status)
@@ -61,6 +182,9 @@ func querySymbol(c echo.Context) (err error) {
 
 type fpHandle struct {
 	Footprint string `json:"footprint"`
+	Url       string `json:"url"`
+	Offset    int    `json:"offset" form:"offset" query:"offset"`
+	Num       int    `json:"num" form:"num" query:"num"`
 }
 
 func queryFp(c echo.Context) (err error) {
@@ -91,6 +215,7 @@ type AddDb struct {
 	Description string `json:"description"`
 	Footprint   string `json:"footprint"`
 	Symbol      string `json:"symbol"`
+	Orcad       string `json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
@@ -178,6 +303,7 @@ func addHwDb(c echo.Context) (err error) {
 	if err = c.Bind(add); err != nil {
 		return
 	}
+	add.Orcad = OrcadPrefix + add.Value
 	var result interface{}
 
 	switch add.TableName {
@@ -276,11 +402,11 @@ func queryHwDb1(c echo.Context) (err error) {
 func queryHwDb(c echo.Context) (err error) {
 	q := new(QueryDb)
 	ret := new(Status)
-	if access, msg := accessCheck(c); !access {
-		ret.Error = -1
-		ret.Msg = msg
-		return c.JSON(http.StatusOK, ret)
-	}
+	// if access, msg := accessCheck(c); !access {
+	// 	ret.Error = -1
+	// 	ret.Msg = msg
+	// 	return c.JSON(http.StatusOK, ret)
+	// }
 	if err = c.Bind(q); err != nil {
 		return
 	}
@@ -329,25 +455,60 @@ func queryHwDb(c echo.Context) (err error) {
 }
 func accessCheck(c echo.Context) (bool, string) {
 	sess, _ := session.Get("session", c)
-	if sess.Values["username"] == nil || sess.Values["email"] == nil || sess.Values["id"] == nil {
+	if sess.Values["groups"] == nil {
 		return false, "Please login"
 	}
+	groups := sess.Values["groups"].(string)
+	group := strings.Split(groups, ",")
+	r := false
+	for _, g := range group {
+		fmt.Println(g)
+		if g == "hwdb" {
+			r = true
+		}
+	}
+	return r, "You don't have right to access database"
 
-	fmt.Println(sess.Values["username"])
-	fmt.Println(sess.Values["email"])
-	fmt.Println(sess.Values["id"])
-	id := sess.Values["id"].(string)
-	ids, _ := strconv.Atoi(id)
-	var result []Weuser
-	db.Where("id = ?", ids).Find(&result)
-	if len(result) == 0 {
-		return false, "The user does not exist"
+}
+func deleteFp(c echo.Context) (err error) {
+	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
 	}
-	if result[0].Level <= 3 {
-		return true, "Successful"
-	} else {
-		return false, "The user does not have right to access"
+	d := new(fpHandle)
+	ret.Data = nil
+	if err = c.Bind(d); err != nil {
+		return
 	}
+
+	db.Unscoped().Where("footprint = ?", d.Footprint).Delete(Footprint{})
+	ret.Error = 0
+	ret.Msg = "successful"
+
+	return c.JSON(http.StatusOK, ret)
+
+}
+func deleteSymbol(c echo.Context) (err error) {
+	ret := new(Status)
+	if access, msg := accessCheck(c); !access {
+		ret.Error = -1
+		ret.Msg = msg
+		return c.JSON(http.StatusOK, ret)
+	}
+	d := new(symbolHandle)
+	ret.Data = nil
+	if err = c.Bind(d); err != nil {
+		return
+	}
+
+	db.Unscoped().Where("symbol = ?", d.Symbol).Delete(Symbol{})
+	ret.Error = 0
+	ret.Msg = "successful"
+
+	return c.JSON(http.StatusOK, ret)
+
 }
 func deleteHwDb(c echo.Context) (err error) {
 	ret := new(Status)
@@ -365,19 +526,19 @@ func deleteHwDb(c echo.Context) (err error) {
 
 	switch d.TableName {
 	case "IC":
-		db.Where("pn = ?", d.Pn).Delete(IC{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(IC{})
 	case "RES":
-		db.Where("pn = ?", d.Pn).Delete(RES{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(RES{})
 	case "CAP":
-		db.Where("pn = ?", d.Pn).Delete(CAP{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(CAP{})
 	case "Other":
-		db.Where("pn = ?", d.Pn).Delete(Other{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(Other{})
 	case "Inductor":
-		db.Where("pn = ?", d.Pn).Delete(Inductor{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(Inductor{})
 	case "Switch/Connector":
-		db.Where("pn = ?", d.Pn).Delete(SwitchConnector{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(SwitchConnector{})
 	case "Transistor/Diode":
-		db.Where("pn = ?", d.Pn).Delete(TransistorDiode{})
+		db.Unscoped().Where("pn = ?", d.Pn).Delete(TransistorDiode{})
 	default:
 		ret.Error = -1
 		ret.Msg = "not found the table"

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo-contrib/session"
 )
 
 const (
@@ -76,7 +77,7 @@ func ssoProvider(c echo.Context) (err error) {
 	fmt.Println(string(v.Encode()))
 
 	path := fmt.Sprintf("%s/session/sso_provider?%s", Host, v.Encode())
-	// fmt.Println(url)
+	fmt.Println(path)
 	return c.Redirect(http.StatusMovedPermanently, path)
 
 	// return c.NoContent(http.StatusOK)
@@ -105,6 +106,18 @@ func ssoRedirect(nonce string, user User) (url.Values, error) {
 	return v, nil
 }
 
+type disUser struct {
+	ID           string `json:"external_id"`
+	Nonce        string `json:"nonce"`
+	ReturnSsoURL string `json:"return_sso_url"`
+	Username     string `json:"username"`
+	Admin        string `json:"admin"`
+	Email        string `json:"email"`
+	Groups       string `json:"groups"`
+	Moderator    string `json:"moderator"`
+	AvatarURL    string `json:"avatr_url"`
+}
+
 func ssoLogin(c echo.Context) (err error) {
 	s := new(Sso)
 	if err = c.Bind(s); err != nil {
@@ -115,7 +128,6 @@ func ssoLogin(c echo.Context) (err error) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(string(qs))
 	mac := hmac.New(sha256.New, []byte(Secert))
 	mac.Write([]byte(s.Sso))
 	expecteMac := mac.Sum(nil)
@@ -129,37 +141,32 @@ func ssoLogin(c echo.Context) (err error) {
 		err = errors.New("query string error")
 		return err
 	}
-	nonce := v.Get("nonce")
-	endpoint := fmt.Sprintf("/#/login/%s", nonce)
-	return c.Redirect(http.StatusMovedPermanently, endpoint)
+	// userInfo := new(disUser)
 
-	// sess, _ := session.Get("session", c)
-	// // if sess.Values["username"] == nil || sess.Values["email"] == nil || sess.Values["id"] == nil {
-	// // 	ret.Error = -1
-	// // 	ret.Msg = "The user does not exist"
-	// // 	return c.JSON(http.StatusOK, ret)
-	// // }
+	// userInfo.Admin = v.Get("admin")
+	// userInfo.AvatarURL = v.Get("avatar_url")
+	// userInfo.Email = v.Get("email")
+	// userInfo.Groups = v.Get("groups")
+	// userInfo.ID = v.Get("external_id")
+	// userInfo.Moderator = v.Get("moderator")
+	// userInfo.Nonce = v.Get("nonce")
+	// userInfo.ReturnSsoURL = v.Get("return_sso_url")
+	// userInfo.Username = v.Get("username")
 
-	// // sess, _ := session.Get("session", c)
-	// // if sess.Values["username"] == nil || sess.Values["email"] == nil {
-	// // 	return c.Redirect(http.StatusMovedPermanently, "/#/login")
-	// // }
-	// fmt.Println(sess.Values["username"])
-	// fmt.Println(sess.Values["email"])
-	// fmt.Println(sess.Values["id"])
+	sess, _ := session.Get("session", c)
+	sess.Values["admin"] = v.Get("admin")
+	sess.Values["avatar_url"] = v.Get("avatar_url")
+	sess.Values["email"] = v.Get("email")
+	sess.Values["groups"] = v.Get("groups")
+	sess.Values["external_id"] = v.Get("external_id")
+	sess.Values["moderator"] = v.Get("moderator")
+	sess.Values["nonce"] = v.Get("nonce")
+	sess.Values["return_sso_url"] = v.Get("return_sso_url")
+	sess.Values["username"] = v.Get("username")
 
-	// // username := sess.Values["username"].(string)
-	// // email := sess.Values["email"].(string)
-	// // id := sess.Values["id"].(string)
+	sess.Save(c.Request(), c.Response())
 
-	// user := User{
-	// 	Email:      "frankie@whyengineer.com",
-	// 	ExternalId: "2",
-	// 	Username:   "frankie",
-	// }
-	// fmt.Println(user)
-	// param, _ := ssoRedirect(nonce, user)
-	// url := fmt.Sprintf("%s/session/sso_login?%s", Host, param.Encode())
-	// fmt.Println(url)
-	// return c.Redirect(http.StatusMovedPermanently, url)
+	// fmt.Println(userInfo)
+	return c.Redirect(http.StatusMovedPermanently, "http://localhost:8080")
+
 }

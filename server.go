@@ -40,7 +40,7 @@ func test(c echo.Context) error {
 }
 
 // ServerInit init echo
-func ServerInit() {
+func ServerInit(dbconn string) {
 	path, _ := filepath.Abs(".")
 	staticPath = filepath.Join(path, "dist")
 
@@ -64,7 +64,7 @@ func ServerInit() {
 	admin = e.Group("/admin")
 	adminRouter()
 
-	db = DbConnect()
+	db = DbConnect(dbconn)
 	db.LogMode(true)
 	e.Logger.Fatal(e.Start(":1323"))
 

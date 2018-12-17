@@ -11,55 +11,68 @@ import (
 type Symbol struct {
 	gorm.Model
 	Symbol string `json:"symbol" gorm:"index;not null;unique"`
+	Url    string `json:"url"`
 }
 
 //Footprint table
 type Footprint struct {
 	gorm.Model
 	Footprint string `json:"footprint" gorm:"index;not null;unique"`
+	Url       string `json:"url"`
 }
 
 // IC table
 type IC struct {
 	gorm.Model
-	PN          string `gorm:"unique;index;not null" json:"pn"`
+	PN          string `gorm:"unique;index;not null;" json:"pn"`
 	Value       string `gorm:"index;not null" json:"value"`
-	Type        string `gorm:"not null" json:"type"`
+	Type        string `gorm:"not null;" json:"type"`
 	Description string `gorm:"not null" json:"description"`
-	Footprint   string `gorm:"not null" json:"footprint"`
+	Footprint   string `gorm:"not null;" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null;" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+}
+
+func (IC) TableName() string {
+	return "IC"
 }
 
 //RES table
 type RES struct {
 	gorm.Model
-	PN          string `gorm:"unique;index;not null" json:"pn"`
+	PN          string `gorm:"unique;index;not null;" json:"pn"`
 	Value       string `gorm:"index;not null" json:"value"`
-	Type        string `gorm:"not null" json:"type"`
+	Type        string `gorm:"not null;" json:"type"`
 	Description string `gorm:"not null" json:"description"`
-	Footprint   string `gorm:"not null" json:"footprint"`
+	Footprint   string `gorm:"not null;" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null;" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+}
+
+func (RES) TableName() string {
+	return "Resistor"
 }
 
 //CAP table
 type CAP struct {
 	gorm.Model
-	PN          string `gorm:"unique;index;not null" json:"pn"`
+	PN          string `gorm:"unique;index;not null;" json:"pn"`
 	Value       string `gorm:"index;not null" json:"value"`
-	Type        string `gorm:"not null" json:"type"`
+	Type        string `gorm:"not null;" json:"type"`
 	Description string `gorm:"not null" json:"description"`
-	Footprint   string `gorm:"not null" json:"footprint"`
+	Footprint   string `gorm:"not null;" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null;" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
@@ -67,20 +80,29 @@ type CAP struct {
 	Vendor2PN   string `json:"vendor2pn"`
 }
 
+func (CAP) TableName() string {
+	return "Capacitor"
+}
+
 //Inductor table
 type Inductor struct {
 	gorm.Model
-	PN          string `gorm:"unique;index;not null" json:"pn"`
+	PN          string `gorm:"unique;index;not null;" json:"pn"`
 	Value       string `gorm:"index;not null" json:"value"`
-	Type        string `gorm:"not null" json:"type"`
+	Type        string `gorm:"not null;" json:"type"`
 	Description string `gorm:"not null" json:"description"`
-	Footprint   string `gorm:"not null" json:"footprint"`
+	Footprint   string `gorm:"not null;" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null;" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+}
+
+func (Inductor) TableName() string {
+	return "Inductor"
 }
 
 //TransistorDiode table
@@ -92,22 +114,28 @@ type TransistorDiode struct {
 	Description string `gorm:"not null" json:"description"`
 	Footprint   string `gorm:"not null" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+}
+
+func (TransistorDiode) TableName() string {
+	return "Transistor_Diode"
 }
 
 //SwitchConnector table
 type SwitchConnector struct {
 	gorm.Model
-	PN          string `gorm:"unique;index;not null" json:"pn"`
+	PN          string `gorm:"unique;index;not null;" json:"pn"`
 	Value       string `gorm:"index;not null" json:"value"`
-	Type        string `gorm:"not null" json:"type"`
+	Type        string `gorm:"not null;" json:"type"`
 	Description string `gorm:"not null" json:"description"`
-	Footprint   string `gorm:"not null" json:"footprint"`
+	Footprint   string `gorm:"not null;" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null;" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
@@ -115,20 +143,29 @@ type SwitchConnector struct {
 	Vendor2PN   string `json:"vendor2pn"`
 }
 
+func (SwitchConnector) TableName() string {
+	return "Switch_Connector"
+}
+
 //Other table
 type Other struct {
 	gorm.Model
-	PN          string `gorm:"unique;index;not null" json:"pn"`
+	PN          string `gorm:"unique;index;not null;" json:"pn"`
 	Value       string `gorm:"index;not null" json:"value"`
-	Type        string `gorm:"not null" json:"type"`
+	Type        string `gorm:"not null;" json:"type"`
 	Description string `gorm:"not null" json:"description"`
-	Footprint   string `gorm:"not null" json:"footprint"`
+	Footprint   string `gorm:"not null;" json:"footprint"`
 	Symbol      string `gorm:"not null" json:"symbol"`
+	Orcad       string `gorm:"not null;" json:"orcad"`
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+}
+
+func (Other) TableName() string {
+	return "Others"
 }
 
 type Weuser struct {
@@ -140,21 +177,22 @@ type Weuser struct {
 }
 
 //DbConnect connect to the db server and return the object
-func DbConnect() *gorm.DB {
-	db, err := gorm.Open("mysql", "frankie:71451085a@tcp(www.whyengineer.com:3306)/hwdb?charset=utf8&parseTime=True")
+func DbConnect(conn string) *gorm.DB {
+	db, err := gorm.Open("mysql", conn)
 	if err != nil {
 		log.Panic(err)
 		return nil
 	}
-	db.AutoMigrate(&IC{})
-	db.AutoMigrate(&CAP{})
-	db.AutoMigrate(&RES{})
-	db.AutoMigrate(&Inductor{})
-	db.AutoMigrate(&TransistorDiode{})
-	db.AutoMigrate(&SwitchConnector{})
-	db.AutoMigrate(&Other{})
-	db.AutoMigrate(&Symbol{})
-	db.AutoMigrate(&Footprint{})
-	db.AutoMigrate(&Weuser{})
+	// db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=utf8")
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&IC{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&CAP{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&RES{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&Inductor{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&TransistorDiode{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&SwitchConnector{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&Other{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&Symbol{})
+	db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=ascii").AutoMigrate(&Footprint{})
+	// db.AutoMigrate(&Weuser{})
 	return db
 }
