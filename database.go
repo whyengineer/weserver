@@ -34,8 +34,10 @@ type IC struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (IC) TableName() string {
@@ -55,8 +57,10 @@ type RES struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (RES) TableName() string {
@@ -76,8 +80,10 @@ type CAP struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (CAP) TableName() string {
@@ -97,8 +103,10 @@ type Inductor struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (Inductor) TableName() string {
@@ -118,8 +126,10 @@ type TransistorDiode struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (TransistorDiode) TableName() string {
@@ -139,8 +149,10 @@ type SwitchConnector struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (SwitchConnector) TableName() string {
@@ -160,8 +172,10 @@ type Other struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func (Other) TableName() string {

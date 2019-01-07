@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/rs/xid"
 )
 
 const (
@@ -33,6 +34,7 @@ type QueryDb1 struct {
 }
 
 func hwdbRouter() {
+
 	hwdb.GET("/queryHw", queryHwDb)
 	hwdb.GET("/deleteHw", deleteHwDb)
 	hwdb.GET("/queryHw1", queryHwDb1)
@@ -219,8 +221,10 @@ type AddDb struct {
 	Datasheet   string `json:"datasheet"`
 	Vendor1     string `json:"vendor1"`
 	Vendor1PN   string `json:"vendor1pn"`
+	Price1      string `json:"price1"`
 	Vendor2     string `json:"vendor2"`
 	Vendor2PN   string `json:"vendor2pn"`
+	Price2      string `json:"price2"`
 }
 
 func updateHwDb(c echo.Context) (err error) {
@@ -235,6 +239,7 @@ func updateHwDb(c echo.Context) (err error) {
 		return
 	}
 	var result interface{}
+	update.Orcad = OrcadPrefix + update.Symbol
 
 	switch update.TableName {
 	case "IC":
@@ -303,7 +308,9 @@ func addHwDb(c echo.Context) (err error) {
 	if err = c.Bind(add); err != nil {
 		return
 	}
-	add.Orcad = OrcadPrefix + add.Value
+	add.Orcad = OrcadPrefix + add.Symbol
+	guid := xid.New()
+	add.PN = guid.String()
 	var result interface{}
 
 	switch add.TableName {
@@ -347,6 +354,7 @@ func addHwDb(c echo.Context) (err error) {
 		ret.Error = -1
 		ret.Msg = dbErr.Error()
 	}
+	ret.Data = result
 	return c.JSON(http.StatusOK, ret)
 
 }
@@ -414,31 +422,31 @@ func queryHwDb(c echo.Context) (err error) {
 	switch q.TableName {
 	case "IC":
 		var tmp []IC
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	case "RES":
 		var tmp []RES
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	case "CAP":
 		var tmp []CAP
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	case "Other":
 		var tmp []Other
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	case "Inductor":
 		var tmp []Inductor
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	case "Switch/Connector":
 		var tmp []SwitchConnector
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	case "Transistor/Diode":
 		var tmp []TransistorDiode
-		db.Order("id desc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
+		db.Order("value asc").Limit(q.Num).Where("value LIKE ?", "%"+q.Value+"%").Find(&tmp)
 		result = tmp
 	default:
 		ret.Error = -1

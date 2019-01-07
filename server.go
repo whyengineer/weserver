@@ -39,6 +39,10 @@ func test(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello, World!")
 }
 
+func dbConn(dbconn string) {
+	db = DbConnect(dbconn)
+}
+
 // ServerInit init echo
 func ServerInit(dbconn string) {
 	path, _ := filepath.Abs(".")
@@ -63,9 +67,9 @@ func ServerInit(dbconn string) {
 
 	admin = e.Group("/admin")
 	adminRouter()
+	dbConn(dbconn)
 
-	db = DbConnect(dbconn)
 	db.LogMode(true)
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":2018"))
 
 }

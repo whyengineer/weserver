@@ -55,6 +55,7 @@ type urlPath struct {
 
 func ssoProvider(c echo.Context) (err error) {
 	u := new(urlPath)
+	hostname := c.Request().Host
 	if err = c.Bind(u); err != nil {
 		return
 	}
@@ -64,8 +65,8 @@ func ssoProvider(c echo.Context) (err error) {
 
 	v := make(url.Values)
 	v.Set("nonce", nonce)
-	v.Set("return_sso_url", u.Url)
-	fmt.Println(nonce, u.Url)
+	v.Set("return_sso_url", "http://"+hostname+u.Url)
+	fmt.Println(nonce, "http://"+hostname+u.Url)
 	p := base64.StdEncoding.EncodeToString([]byte(v.Encode()))
 	h := hmac.New(sha256.New, []byte(Secert))
 	h.Write([]byte(p))
@@ -119,6 +120,7 @@ type disUser struct {
 }
 
 func ssoLogin(c echo.Context) (err error) {
+	hostname := c.Request().Host
 	s := new(Sso)
 	if err = c.Bind(s); err != nil {
 		return
@@ -165,8 +167,6 @@ func ssoLogin(c echo.Context) (err error) {
 	sess.Values["username"] = v.Get("username")
 
 	sess.Save(c.Request(), c.Response())
-
-	// fmt.Println(userInfo)
-	return c.Redirect(http.StatusMovedPermanently, "http://localhost:8080")
+	return c.Redirect(http.StatusMovedPermanently, "http://"+hostname)
 
 }

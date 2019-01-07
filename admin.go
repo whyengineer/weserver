@@ -17,7 +17,7 @@ func adminRouter() {
 	dsClient, _ = NewClient(Host, "f05fb8eaabe0e163fe5a609ef08c5dd9d9784d629c1f8dcf47f0e3cfcc7810c3", "frankie")
 
 	admin.GET("/login", ssoProvider)
-	admin.GET("/pass", ssoLogin)
+	admin.GET("/pass/:rnd", ssoLogin)
 	admin.POST("/signup", signup)
 	admin.GET("/session", getSession)
 	admin.GET("/logout", logout)
